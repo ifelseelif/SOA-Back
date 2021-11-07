@@ -4,10 +4,12 @@
 
 ```
 public class Product {
-    private Long id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    private Long id; //Поле не может быть null, Значение поля должно быть больше 0, 
+Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
     private Coordinates coordinates; //Поле не может быть null
-    private java.util.Date creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
+    private java.util.Date creationDate; //Поле не может быть null, 
+Значение этого поля должно генерироваться автоматически
     private Float price; //Поле может быть null, Значение поля должно быть больше 0
     private Long manufactureCost; //Поле может быть null
     private UnitOfMeasure unitOfMeasure; //Поле не может быть null
@@ -18,9 +20,11 @@ public class Coordinates {
     private float y;
 }
 public class Organization {
-    private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, 
+Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
-    private String fullName; //Длина строки не должна быть больше 1707, Значение этого поля должно быть уникальным, Поле может быть null
+    private String fullName; //Длина строки не должна быть больше 1707, 
+Значение этого поля должно быть уникальным, Поле может быть null
     private OrganizationType type; //Поле не может быть null
     private Address postalAddress; //Поле может быть null
 }
