@@ -1,0 +1,20 @@
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+    <persistence-unit name="soa" transaction-type="RESOURCE_LOCAL">
+        <!-- Persistence provider -->
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <!-- Entity classes -->
+        <class>com.ifelseelif.database.models.Coordinates</class>
+        <class>com.ifelseelif.database.models.Organization</class>
+        <class>com.ifelseelif.database.models.OrganizationType</class>
+        <class>com.ifelseelif.database.models.Product</class>
+        <class>com.ifelseelif.database.models.UnitOfMeasure</class>
+        <class>com.ifelseelif.database.models.Location</class>
+        <class>com.ifelseelif.database.models.Address</class>
+
+        <properties>
+        </properties>
+    </persistence-unit>
+</persistence>
