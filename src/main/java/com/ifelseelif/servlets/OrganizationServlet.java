@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("organizations/*")
+@WebServlet("/organizations/*")
 public class OrganizationServlet extends Servlet<Organization, OrganizationServiceImp> {
     public OrganizationServlet() {
         super(new OrganizationServiceImp(), Organization.class);

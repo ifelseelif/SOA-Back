@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("products/*")
+@WebServlet("/products/*")
 public class ProductServlet extends Servlet<Product, ProductServiceImp> {
     private final ProductService productService;
 
@@ -22,7 +22,7 @@ public class ProductServlet extends Servlet<Product, ProductServiceImp> {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         super.doGet(req, resp);
     }
 

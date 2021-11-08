@@ -1,6 +1,7 @@
 package com.ifelseelif.servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.ifelseelif.servlets.models.Body;
 
 import javax.servlet.annotation.WebServlet;
@@ -12,7 +13,7 @@ import java.io.PrintWriter;
 
 @WebServlet("/error500")
 public class ErrorServlet extends HttpServlet {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final XmlMapper objectMapper = new XmlMapper();
 
 
     @Override
@@ -22,7 +23,7 @@ public class ErrorServlet extends HttpServlet {
 
         PrintWriter out = resp.getWriter();
         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.setContentType("application/json");
+        resp.setContentType("text/xml");
         resp.setCharacterEncoding("UTF-8");
         out.print(response);
         out.flush();
