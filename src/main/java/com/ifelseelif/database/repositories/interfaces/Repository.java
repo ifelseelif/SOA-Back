@@ -64,7 +64,7 @@ public abstract class Repository<T> {
                 Y value = Enum.valueOf(enumClass, splitCond[1]);
                 addPredicate(from, splitCond[0], propertyName, value, predicateList, criteriaBuilder);
             } catch (Exception ignored) {
-                throw new BadRequestException("Неправильно указан условие");
+                throw new BadRequestException("Invalid filter " + condition);
             }
         }
     }
@@ -79,18 +79,19 @@ public abstract class Repository<T> {
                 System.out.println(date);
                 addPredicate(from, splitCond[0], propertyName, date, predicateList, criteriaBuilder);
             } catch (Exception ignored) {
-                throw new BadRequestException("Неправильно задана ");
+                throw new BadRequestException("Invalid filter " + condition);
             }
         }
     }
 
-    protected <Z, X> void addPredicates(From<Z, X> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) {
+    protected <Z, X> void addPredicates(From<Z, X> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws BadRequestException {
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
             if (splitCond.length != 2) return;
             try {
                 addPredicate(from, splitCond[0], propertyName, splitCond[1], predicateList, criteriaBuilder);
             } catch (Exception ignored) {
+                throw new BadRequestException("Invalid filter " + condition);
             }
         }
     }
@@ -115,7 +116,7 @@ public abstract class Repository<T> {
         }
     }
 
-    protected <T> void addOrder(CriteriaBuilder criteriaBuilder, List<Order> orderList, String[] args, Path<T> objectPath) {
+    protected <Field> void addOrder(CriteriaBuilder criteriaBuilder, List<Order> orderList, String[] args, Path<Field> objectPath) {
         if ((args.length == 1) || ((args.length == 2) && (args[1].equals("asc")))) {
             orderList.add(criteriaBuilder.asc(objectPath));
         } else if (args.length == 2) {

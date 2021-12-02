@@ -27,24 +27,32 @@ public abstract class Service<T> {
         return repository.getAll(filter);
     }
 
-    private List<String> getSortParams(String[] sorts) {
+    private List<String> getSortParams(String[] sorts) throws BadRequestException {
         List<String> result = new ArrayList<>();
-        List<String> productPropertiesName = getPropertiesName();
+        List<String> propertiesName = getPropertiesName();
         for (String order : sorts) {
             String[] values = order.split(Constants.divider);
-            if (values.length == 0) continue;
-            if (productPropertiesName.contains(values[0])) {
+            if (values.length == 0) throw new BadRequestException("Invalid sort param, it can not be zero");
+            if (propertiesName.contains(values[0])) {
                 result.add(order);
+            } else {
+                throw new BadRequestException("Invalid name sort" + values[0]);
             }
         }
+
         return result;
     }
 
-    private Map<String, String[]> getFilters(Map<String, String[]> parameterMap) {
+    private Map<String, String[]> getFilters(Map<String, String[]> parameterMap) throws BadRequestException {
         Map<String, String[]> filters = new HashMap<>();
-        for (String propertyName : getPropertiesName()) {
-            if (!parameterMap.containsKey(propertyName)) continue;
-            filters.put(propertyName, parameterMap.get(propertyName));
+        List<String> propertiesName = getPropertiesName();
+        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+            if(entry.getKey().equals("sort") || entry.getKey().equals("pageIndex") || entry.getKey().equals("pageSize") )
+                continue;
+            if (!propertiesName.contains(entry.getKey())) {
+                throw new BadRequestException("Invalid name filter " + entry.getKey());
+            }
+            filters.put(entry.getKey(), entry.getValue());
         }
 
         return filters;

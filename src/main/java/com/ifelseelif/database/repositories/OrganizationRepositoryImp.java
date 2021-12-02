@@ -32,6 +32,12 @@ public class OrganizationRepositoryImp extends Repository<Organization> implemen
 
         int size = filter.getPageSize();
         int index = filter.getPageIndex();
+        if (size < 0) {
+            throw new BadRequestException("Page size can not be less than 0");
+        }
+        if (index < 0) {
+            throw new BadRequestException("Index page can not be less than 0");
+        }
 
         TypedQuery<Organization> typedQuery = entityManager.createQuery(criteriaQuery);
         typedQuery.setFirstResult(index * size);

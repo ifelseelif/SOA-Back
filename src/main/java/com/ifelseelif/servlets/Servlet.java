@@ -1,5 +1,7 @@
 package com.ifelseelif.servlets;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.ifelseelif.services.interfaces.Service;
 import com.ifelseelif.servlets.exceptions.BadRequestException;
@@ -12,9 +14,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class Servlet<T, ServiceImp extends Service<T>> extends HttpServlet {
     protected final XmlMapper xmlMapper = new XmlMapper();
@@ -40,13 +42,22 @@ public abstract class Servlet<T, ServiceImp extends Service<T>> extends HttpServ
                 writeBody(resp, tList);
                 return;
             }
+            Object id = getIdFromPath(req);
+            if (id != null) {
+                Optional<?> optionalObject = service.getById(id);
+                if (!optionalObject.isPresent()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    writeString(resp, "not found");
+                }
+                writeBody(resp, optionalObject.get());
+            } else {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                writeString(resp, "id incorrectly set");
+            }
         } catch (HttpException httpException) {
             resp.setStatus(httpException.getStatusCode());
             writeString(resp, httpException.getMessage());
-            return;
         }
-
-        resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
     }
 
     @Override
@@ -58,18 +69,16 @@ public abstract class Servlet<T, ServiceImp extends Service<T>> extends HttpServ
             return;
         }
 
-        T body = GetRequestBody(req);
+        T body = GetRequestBody(req, resp);
         if (body == null) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writeString(resp, "Can't save object, because it contains invalid format");
             return;
         }
 
-        com.ifelseelif.servlets.models.Body response;
+        Body response;
         try {
             service.save(body);
             resp.setStatus(HttpServletResponse.SC_OK);
-            response = new com.ifelseelif.servlets.models.Body("saved");
+            response = new Body("saved");
         } catch (BadRequestException exception) {
             resp.setStatus(exception.getStatusCode());
             writeString(resp, exception.getMessage());
@@ -86,10 +95,8 @@ public abstract class Servlet<T, ServiceImp extends Service<T>> extends HttpServ
             return;
         }
 
-        T body = GetRequestBody(req);
+        T body = GetRequestBody(req, resp);
         if (body == null) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writeString(resp, "Can't save object, because it contains invalid properties");
             return;
         }
 
@@ -129,12 +136,19 @@ public abstract class Servlet<T, ServiceImp extends Service<T>> extends HttpServ
 
     protected abstract Object getIdFromPath(HttpServletRequest req);
 
-    protected T GetRequestBody(HttpServletRequest req) {
+    protected T GetRequestBody(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String errorMessage = "";
         try {
             return xmlMapper.readValue(req.getReader(), typeParameterClass);
-        } catch (Exception ignored) {
-            return null;
+        } catch (InvalidFormatException ignored) {
+            errorMessage = "invalid format for " + ignored.getPath().get(0).getFieldName();
+            ignored.printStackTrace();
+        } catch (IOException format) {
+            errorMessage = "Can't save object, because it contains invalid properties";
         }
+        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        writeString(resp, errorMessage);
+        return null;
     }
 
     protected <Body> void writeBody(HttpServletResponse resp, Body body) throws IOException {

@@ -32,6 +32,13 @@ public class ProductRepositoryImp extends Repository<Product> implements Product
         int size = filter.getPageSize();
         int index = filter.getPageIndex();
 
+        if (size < 0) {
+            throw new BadRequestException("Page size can not be less than 0");
+        }
+        if (index < 0) {
+            throw new BadRequestException("Index page can not be less than 0");
+        }
+
         TypedQuery<Product> typedQuery = entityManager.createQuery(criteriaQuery);
         typedQuery.setFirstResult(index * size);
         typedQuery.setMaxResults(size);
@@ -95,7 +102,7 @@ public class ProductRepositoryImp extends Repository<Product> implements Product
         return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
     }
 
-    private void addPredicatesForName(Root<Product> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) {
+    private void addPredicatesForName(Root<Product> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws BadRequestException {
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
             if (splitCond.length != 2) return;
@@ -107,6 +114,7 @@ public class ProductRepositoryImp extends Repository<Product> implements Product
                     addPredicate(from, splitCond[0], propertyName, splitCond[1], predicateList, criteriaBuilder);
                 }
             } catch (Exception ignored) {
+                throw new BadRequestException("Invalid filter" + condition);
             }
         }
     }
