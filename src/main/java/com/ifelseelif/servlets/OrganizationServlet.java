@@ -1,3 +1,4 @@
+/*
 package com.ifelseelif.servlets;
 
 import com.ifelseelif.database.models.Organization;
@@ -51,3 +52,4 @@ public class OrganizationServlet extends Servlet<Organization, OrganizationServi
         return null;
     }
 }
+*/

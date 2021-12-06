@@ -1,31 +1,26 @@
 package com.ifelseelif.servlets;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ifelseelif.database.models.Product;
 import com.ifelseelif.services.ProductServiceImp;
-import com.ifelseelif.services.interfaces.ProductService;
-import com.ifelseelif.servlets.exceptions.HttpException;
+import com.ifelseelif.servlets.exceptions.BadRequestException;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-@WebServlet("/products/*")
-public class ProductServlet extends Servlet<Product, ProductServiceImp> {
-    private final ProductService productService;
+@Path("/products")
+@Produces(MediaType.TEXT_XML)
+@Consumes(MediaType.TEXT_XML)
+public class ProductResource {
+    private final ProductServiceImp productService = new ProductServiceImp();
 
-    public ProductServlet() {
-        super(new ProductServiceImp(), Product.class);
-        this.productService = (ProductService) service;
+    @GET
+    public Response Get() {
+        return Response.status(Response.Status.OK).entity("Kek").build();
     }
-
-    @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        super.doGet(req, resp);
-    }
-
+/*
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         super.doPost(req, resp);
@@ -65,5 +60,5 @@ public class ProductServlet extends Servlet<Product, ProductServiceImp> {
         } catch (Exception ignored) {
         }
         return null;
-    }
+    }*/
 }

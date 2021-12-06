@@ -15,6 +15,14 @@
         <class>com.ifelseelif.database.models.Address</class>
 
         <properties>
+            <property name="hibernate.jdbc.time_zone" value="UTC"/>
+            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/studs"/>
+            <property name="javax.persistence.jdbc.user" value="sa"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="javax.persistence.jdbc.password" value="pass"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect"/>
+            <property name="hibernate.show_sql" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>
