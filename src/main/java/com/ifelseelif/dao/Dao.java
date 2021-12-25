@@ -1,62 +1,14 @@
-package com.ifelseelif.database.repositories.interfaces;
+package com.ifelseelif.dao;
 
 import com.ifelseelif.Constants;
-import com.ifelseelif.database.models.Filter;
-import com.ifelseelif.servlets.exceptions.BadRequestException;
+import com.ifelseelif.servlets.exceptions.HttpException;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
-import javax.persistence.RollbackException;
 import javax.persistence.criteria.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Optional;
 
-public abstract class Repository<T> {
-    private final Class<T> typeParameterClass;
-    protected final EntityManager entityManager;
-
-    public Repository(Class<T> type) {
-        typeParameterClass = type;
-        entityManager = Persistence.createEntityManagerFactory("soa").createEntityManager();
-    }
-
-    public Optional<T> save(T t) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(t);
-        entityManager.getTransaction().commit();
-        return Optional.of(t);
-    }
-
-    public Optional<T> getById(Object id) {
-        if (id == null) return Optional.empty();
-
-        T t = entityManager.find(typeParameterClass, id);
-        return t != null ? Optional.of(t) : Optional.empty();
-    }
-
-    public boolean deleteById(Object id) throws BadRequestException {
-        T t = entityManager.find(typeParameterClass, id);
-        if (t != null) {
-            try {
-                entityManager.getTransaction().begin();
-                entityManager.remove(t);
-                entityManager.getTransaction().commit();
-            } catch (RollbackException e) {
-                throw new BadRequestException("You must delete before products which contains this organization");
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public void update(T t) {
-        entityManager.getTransaction().begin();
-        entityManager.merge(t);
-        entityManager.getTransaction().commit();
-    }
-
-    protected <Y extends Enum<Y>> void addEnumPredicate(Root<T> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder, Class<Y> enumClass) throws BadRequestException {
+public abstract class Dao<T> {
+    protected <Y extends Enum<Y>> void addEnumPredicate(Root<T> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder, Class<Y> enumClass) throws HttpException {
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
             if (splitCond.length != 2) return;
@@ -64,12 +16,12 @@ public abstract class Repository<T> {
                 Y value = Enum.valueOf(enumClass, splitCond[1]);
                 addPredicate(from, splitCond[0], propertyName, value, predicateList, criteriaBuilder);
             } catch (Exception ignored) {
-                throw new BadRequestException("Invalid filter " + condition);
+                throw new HttpException("Invalid filter " + condition, 400);
             }
         }
     }
 
-    protected void addTimePredicate(Root<T> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws BadRequestException {
+    protected void addTimePredicate(Root<T> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws HttpException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
@@ -79,19 +31,19 @@ public abstract class Repository<T> {
                 System.out.println(date);
                 addPredicate(from, splitCond[0], propertyName, date, predicateList, criteriaBuilder);
             } catch (Exception ignored) {
-                throw new BadRequestException("Invalid filter " + condition);
+                throw new HttpException("Invalid filter " + condition, 400);
             }
         }
     }
 
-    protected <Z, X> void addPredicates(From<Z, X> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws BadRequestException {
+    protected <Z, X> void addPredicates(From<Z, X> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws HttpException {
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
             if (splitCond.length != 2) return;
             try {
                 addPredicate(from, splitCond[0], propertyName, splitCond[1], predicateList, criteriaBuilder);
             } catch (Exception ignored) {
-                throw new BadRequestException("Invalid filter " + condition);
+                throw new HttpException("Invalid filter " + condition, 400);
             }
         }
     }
@@ -123,6 +75,4 @@ public abstract class Repository<T> {
             orderList.add(criteriaBuilder.desc(objectPath));
         }
     }
-
-    public abstract List<T> getAll(Filter filter) throws BadRequestException;
 }

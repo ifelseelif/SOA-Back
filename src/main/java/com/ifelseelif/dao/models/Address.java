@@ -1,6 +1,5 @@
-package com.ifelseelif.database.models;
+package com.ifelseelif.dao.models;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,10 +10,8 @@ import javax.persistence.Embedded;
 @Data
 @NoArgsConstructor
 public class Address {
-    @NotNull
     private String zipCode;
 
-    @NotNull
     @Embedded
     private Location town;
 }

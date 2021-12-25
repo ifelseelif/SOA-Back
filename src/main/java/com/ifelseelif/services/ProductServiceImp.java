@@ -1,45 +1,83 @@
 package com.ifelseelif.services;
 
 import com.ifelseelif.Constants;
-import com.ifelseelif.database.models.Coordinates;
-import com.ifelseelif.database.models.Organization;
-import com.ifelseelif.database.models.Product;
-import com.ifelseelif.database.repositories.OrganizationRepositoryImp;
-import com.ifelseelif.database.repositories.ProductRepositoryImp;
-import com.ifelseelif.services.interfaces.ProductService;
-import com.ifelseelif.services.interfaces.Service;
-import com.ifelseelif.servlets.exceptions.BadRequestException;
+import com.ifelseelif.dao.OrganizationDao;
+import com.ifelseelif.dao.ProductDao;
+import com.ifelseelif.dao.models.Coordinates;
+import com.ifelseelif.dao.models.Filter;
+import com.ifelseelif.dao.models.Organization;
+import com.ifelseelif.dao.models.Product;
+import com.ifelseelif.servlets.exceptions.HttpException;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-public class ProductServiceImp extends Service<Product> implements ProductService {
-    private final OrganizationRepositoryImp organizationRepository = new OrganizationRepositoryImp();
-    private ProductRepositoryImp productRepository;
+public class ProductServiceImp {
+    private ProductDao productDao;
+    private OrganizationDao organizationDao;
     private List<String> productPropertiesNames;
 
 
     public ProductServiceImp() {
-        super(new ProductRepositoryImp(), Product.class);
-        this.productRepository = (ProductRepositoryImp) repository;
+        productDao = new ProductDao();
+        organizationDao = new OrganizationDao();
     }
 
-    public void save(Product product) throws BadRequestException {
+    public void save(Product product) throws HttpException {
         validate(product);
 
         int manufacturerId = product.getManufacturer().getId();
-        Optional<Organization> optionalOrganization = organizationRepository.getById(manufacturerId);
-        if (optionalOrganization.isPresent()) {
-            product.setManufacturer(optionalOrganization.get());
-        } else {
-            throw new BadRequestException("Organization didn't present with this id");
-        }
+        Organization organization = organizationDao.findById(manufacturerId);
+        if (organization == null)
+            throw new HttpException("organization with id:=" + manufacturerId + " not found", 404);
+
+        product.setManufacturer(organization);
         product.setCreationDate(new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-        super.save(product);
+        productDao.save(product);
     }
 
-    @Override
-    protected List<String> getPropertiesName() {
+    public void updateById(long productId, Product product) throws HttpException {
+        product.setId(productId);
+        validate(product);
+        Organization organization = organizationDao.findById(product.getManufacturer().getId());
+        if (organization == null)
+            throw new HttpException("organization with id:=" + product.getManufacturer().getId() + " not found", 404);
+
+        product.setId(productId);
+        product.setManufacturer(organization);
+
+        productDao.update(product);
+    }
+
+    public void deleteByManufactureCost(Long manufactureCost) throws HttpException {
+        if (manufactureCost == null) throw new HttpException("provide manufacture cost", 400);
+        productDao.deleteByManufactureCost(manufactureCost);
+    }
+
+
+    public List<Product> getAll(Map<String, String[]> parameterMap) throws HttpException {
+        int pageIndex = getIntValue(parameterMap, "pageIndex", 0);
+        int pageSize = getIntValue(parameterMap, "pageSize", 10);
+        List<String> sortingParams = getSortParams(parameterMap.getOrDefault("sort", new String[]{}));
+        Map<String, String[]> filters = getFilters(parameterMap);
+        Filter filter = new Filter(pageIndex, pageSize, sortingParams, filters);
+
+        System.out.println("return ok");
+        return productDao.findAllFiltering(filter);
+    }
+
+    public Product getById(long id) throws HttpException {
+        Product product = productDao.findById(id);
+        if (product == null) throw new HttpException("product with id:=" + id + " not found", 400);
+        return product;
+    }
+
+    public void deleteById(long id) throws HttpException {
+        Product product = getById(id);
+        productDao.delete(product);
+    }
+
+    private List<String> getPropertiesName() {
         if (productPropertiesNames != null) {
             return productPropertiesNames;
         }
@@ -61,8 +99,51 @@ public class ProductServiceImp extends Service<Product> implements ProductServic
         return productPropertiesNames;
     }
 
-    @Override
-    protected void validate(Product product) throws BadRequestException {
+    private List<String> getSortParams(String[] sorts) throws HttpException {
+        List<String> result = new ArrayList<>();
+        List<String> propertiesName = getPropertiesName();
+        for (String order : sorts) {
+            String[] values = order.split(Constants.divider);
+            if (values.length == 0) throw new HttpException("Invalid sort param, it can not be zero", 400);
+            if (propertiesName.contains(values[0])) {
+                result.add(order);
+            } else {
+                throw new HttpException("Invalid name sort" + values[0], 400);
+            }
+        }
+
+        return result;
+    }
+
+    private Map<String, String[]> getFilters(Map<String, String[]> parameterMap) throws HttpException {
+        Map<String, String[]> filters = new HashMap<>();
+        List<String> propertiesName = getPropertiesName();
+        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+            if (entry.getKey().equals("sort") || entry.getKey().equals("pageIndex") || entry.getKey().equals("pageSize"))
+                continue;
+            if (!propertiesName.contains(entry.getKey())) {
+                throw new HttpException("Invalid name filter " + entry.getKey(), 400);
+            }
+            filters.put(entry.getKey(), entry.getValue());
+        }
+
+        return filters;
+    }
+
+    private int getIntValue(Map<String, String[]> parameterMap, String name, int defaultValue) throws HttpException {
+        int value = defaultValue;
+        if (parameterMap.containsKey(name)) {
+            try {
+                value = Integer.parseInt(String.join("", parameterMap.get(name)));
+            } catch (Exception ignored) {
+                throw new HttpException("Parameters is invalid", 400);
+            }
+        }
+
+        return value;
+    }
+
+    private void validate(Product product) throws HttpException {
         String errorMessage = null;
         if (product.getName() == null || product.getName().isEmpty()) errorMessage = "Name should not be empty";
         if (product.getCoordinates() == null || product.getCoordinates().getX() == null)
@@ -77,31 +158,7 @@ public class ProductServiceImp extends Service<Product> implements ProductServic
             errorMessage = "Manufacture id should not be empty";
 
         if (errorMessage != null) {
-            throw new BadRequestException(errorMessage);
+            throw new HttpException(errorMessage, 400);
         }
-    }
-
-    @Override
-    public boolean updateById(Object productId, Product product) throws BadRequestException {
-        Optional<Organization> optionalOrganization = organizationRepository.getById(product.getManufacturer().getId());
-        if (!optionalOrganization.isPresent()) return false;
-
-        product.setId((Long) productId);
-        product.setManufacturer(optionalOrganization.get());
-        return super.updateById(productId, product);
-    }
-
-    @Override
-    public void deleteByManufactureCost(String[] manufactureCosts) throws BadRequestException {
-        Long manufactureCost = null;
-        for (String manufactureCostString :
-                manufactureCosts) {
-            try {
-                manufactureCost = Long.parseLong(manufactureCostString);
-            } catch (Exception ignored) {
-            }
-        }
-        if (manufactureCost == null) throw new BadRequestException("provide manufacture cost");
-        productRepository.deleteByManufactureCost(manufactureCost);
     }
 }

@@ -1,4 +1,4 @@
-package com.ifelseelif.database.models;
+package com.ifelseelif.dao.models;
 
 public enum UnitOfMeasure {
     METERS,

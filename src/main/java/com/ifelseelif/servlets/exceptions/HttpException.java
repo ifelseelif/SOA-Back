@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public abstract class HttpException extends Exception {
+public class HttpException extends Exception {
     private String message;
     private int statusCode;
 }

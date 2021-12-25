@@ -1,7 +1,8 @@
+
 package com.ifelseelif.servlets;
 
-import com.ifelseelif.dao.models.Product;
-import com.ifelseelif.services.ProductServiceImp;
+import com.ifelseelif.dao.models.Organization;
+import com.ifelseelif.services.OrganizationServiceImp;
 import com.ifelseelif.servlets.exceptions.HttpException;
 import com.ifelseelif.servlets.models.Body;
 
@@ -12,17 +13,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-@Path("/products")
+
+@Path("/organizations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ProductResource {
-    private final ProductServiceImp productService = new ProductServiceImp();
+public class OrganizationResource {
+    OrganizationServiceImp service = new OrganizationServiceImp();
 
     @GET
     @Path("/{id}")
-    public Response getById(@PathParam("id") Long id) {
+    public Response getById(@PathParam("id") int id) {
         try {
-            return Response.ok(productService.getById(id)).build();
+            return Response.ok(service.getById(id)).build();
         } catch (HttpException e) {
             Body body = new Body(e.getMessage());
             return Response.status(e.getStatusCode()).entity(body).build();
@@ -32,9 +34,8 @@ public class ProductResource {
     @GET
     public Response getAll(@Context HttpServletRequest request) {
         try {
-            List<Product> productList = productService.getAll(request.getParameterMap());
-
-            return Response.ok(productList).build();
+            List<Organization> organizationList = service.getAll(request.getParameterMap());
+            return Response.ok(organizationList).build();
         } catch (HttpException e) {
             Body body = new Body(e.getMessage());
             return Response.status(e.getStatusCode()).entity(body).build();
@@ -42,9 +43,9 @@ public class ProductResource {
     }
 
     @POST
-    public Response add(Product product) {
+    public Response add(Organization organization) {
         try {
-            productService.save(product);
+            service.save(organization);
             return Response.ok().build();
         } catch (HttpException e) {
             Body body = new Body(e.getMessage());
@@ -54,9 +55,9 @@ public class ProductResource {
 
     @PUT
     @Path("/{id}")
-    public Response updateById(@PathParam("id") Long id, Product product) {
+    public Response updateById(@PathParam("id") int id, Organization organization) {
         try {
-            productService.updateById(id, product);
+            service.updateById(id, organization);
             return Response.ok().build();
         } catch (HttpException e) {
             Body body = new Body(e.getMessage());
@@ -66,9 +67,9 @@ public class ProductResource {
 
     @DELETE
     @Path("/{id}")
-    public Response deleteById(@PathParam("id") Long id) {
+    public Response deleteById(@PathParam("id") int id) {
         try {
-            productService.deleteById(id);
+            service.deleteById(id);
             return Response.ok().build();
         } catch (HttpException e) {
             Body body = new Body(e.getMessage());

@@ -1,6 +1,5 @@
-package com.ifelseelif.database.models;
+package com.ifelseelif.dao.models;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,5 @@ import javax.persistence.Embeddable;
 public class Location {
     private double x;
     private int y;
-
-    @NotNull
     private Double z;
 }
