@@ -95,7 +95,7 @@ public class ProductDao extends Dao<Product> {
         }
     }
 
-    private List<Order> getListOfOrders(List<String> sortingParams, Root<Product> from, Join<Product, Coordinates> joinCoordinates, Join<Product, Organization> joinOrganization, CriteriaBuilder criteriaBuilder) {
+    private List<Order> getListOfOrders(List<String> sortingParams, Root<Product> from, Join<Product, Coordinates> joinCoordinates, Join<Product, Organization> joinOrganization, CriteriaBuilder criteriaBuilder) throws HttpException {
         List<Order> orderList = new ArrayList<>();
 
         if (sortingParams == null) return orderList;

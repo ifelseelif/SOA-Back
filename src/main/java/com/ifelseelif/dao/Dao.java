@@ -39,7 +39,8 @@ public abstract class Dao<T> {
     protected <Z, X> void addPredicates(From<Z, X> from, String propertyName, String[] conditions, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws HttpException {
         for (String condition : conditions) {
             String[] splitCond = condition.split(Constants.divider);
-            if (splitCond.length != 2) return;
+            if (splitCond.length != 2)
+                throw new HttpException("Invalid filter " + condition, 400);
             try {
                 addPredicate(from, splitCond[0], propertyName, splitCond[1], predicateList, criteriaBuilder);
             } catch (Exception ignored) {
@@ -48,7 +49,7 @@ public abstract class Dao<T> {
         }
     }
 
-    protected <Y extends Comparable<? super Y>, Z, X> void addPredicate(From<Z, X> from, String condition, String propertyName, Y value, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) {
+    protected <Y extends Comparable<? super Y>, Z, X> void addPredicate(From<Z, X> from, String condition, String propertyName, Y value, List<Predicate> predicateList, CriteriaBuilder criteriaBuilder) throws Exception {
         switch (condition) {
             case ">":
                 predicateList.add(criteriaBuilder.greaterThan(from.get(propertyName), value));
@@ -65,10 +66,16 @@ public abstract class Dao<T> {
             case "=":
                 predicateList.add(criteriaBuilder.equal(from.get(propertyName), value));
                 break;
+            default:
+                throw new Exception();
         }
     }
 
-    protected <Field> void addOrder(CriteriaBuilder criteriaBuilder, List<Order> orderList, String[] args, Path<Field> objectPath) {
+    protected <Field> void addOrder(CriteriaBuilder criteriaBuilder, List<Order> orderList, String[] args, Path<Field> objectPath) throws HttpException {
+        if (args.length == 2 && (!args[1].equals("asc") || !args[1].equals("desc"))) {
+            throw new HttpException("Неправильно задан порядок для сортировки", 400);
+        }
+
         if ((args.length == 1) || ((args.length == 2) && (args[1].equals("asc")))) {
             orderList.add(criteriaBuilder.asc(objectPath));
         } else if (args.length == 2) {

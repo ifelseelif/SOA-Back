@@ -46,6 +46,10 @@ public class ProductServiceImp {
         product.setId(productId);
         product.setManufacturer(organization);
 
+        if (productDao.findById(productId) == null) {
+            throw new HttpException("product with id:=" + product.getId() + " not found", 404);
+        }
+
         productDao.update(product);
     }
 

@@ -98,7 +98,7 @@ public class OrganizationDao extends Dao<Organization> {
         return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
     }
 
-    private List<Order> getListOfOrders(List<String> sortingParams, Root<Organization> from, Join<Organization, Location> locationJoin, Join<Organization, Address> joinPostalAddress, CriteriaBuilder criteriaBuilder) {
+    private List<Order> getListOfOrders(List<String> sortingParams, Root<Organization> from, Join<Organization, Location> locationJoin, Join<Organization, Address> joinPostalAddress, CriteriaBuilder criteriaBuilder) throws HttpException {
         List<Order> orderList = new ArrayList<>();
 
         if (sortingParams == null) return orderList;
